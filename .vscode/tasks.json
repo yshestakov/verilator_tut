@@ -1,0 +1,47 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Verilator: compile .v",
+            "type": "shell",
+            "command": "/opt/local/bin/verilator",
+            "args": [
+                "-Wall",
+                "-cc",
+                "${file}"
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "Verilator: build V_ALL.a",
+            "command": "cd obj_dir; make -f V${fileBasenameNoExtension}.mk",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "Verilator: build TB active file",
+            "command": "/opt/local/bin/g++-mp-9",
+            "args": [
+                "-O2",
+                "-I/opt/local/share/verilator/include",
+                "-Iobj_dir/",
+                "/opt/local/share/verilator/include/verilated.cpp",
+                "${file}",
+                "obj_dir/V${fileBasenameNoExtension}__ALL.a",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        }
+    ]
+}
