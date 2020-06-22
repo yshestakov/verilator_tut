@@ -14,6 +14,17 @@
             ]
         },
         {
+            "label": "Verilator: compile .v with trace",
+            "type": "shell",
+            "command": "/opt/local/bin/verilator",
+            "args": [
+                "-Wall",
+                "--trace",
+                "-cc",
+                "${file}"
+            ]
+        },
+        {
             "type": "shell",
             "label": "Verilator: build V_ALL.a",
             "command": "cd obj_dir; make -f V${fileBasenameNoExtension}.mk",
