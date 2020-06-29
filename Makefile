@@ -11,11 +11,12 @@ else
 		VINC := /usr/share/verilator/include
 	endif
 	ifeq ($(UNAME_S),Darwin)
-		VERILATOR : =/opt/local/bin/verilator
+		VERILATOR := /opt/local/bin/verilator
+		VINC := /opt/local/share/verilator/include
 		# if you run verilator with --trace
 		# you have to use clang++
 		# else g++ is OK
-		CXX := /opt/local/bin/g++-mp-9
+		CXX := clang++
 	endif
 endif
 
