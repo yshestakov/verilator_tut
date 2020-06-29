@@ -12,8 +12,16 @@ BASEFN=${VFN%.cpp}
 BASEFN=${BASEFN%_tb*}
 #CXX=g++
 #CXX=/opt/local/bin/g++-mp-9
-CXX=/opt/local/bin/clang++-mp-9.0
-VINC=/opt/local/share/verilator/include
+case $(uname -s) in
+    Darwin)
+        CXX=/opt/local/bin/clang++-mp-9.0
+        VINC=/opt/local/share/verilator/include
+        ;;
+    Linux)
+        CXX=clang++
+        VINC=/usr/share/verilator/include
+        ;;
+esac
 $CXX -I $VINC \
     -I obj_dir/ \
     $VINC/verilated.cpp \
