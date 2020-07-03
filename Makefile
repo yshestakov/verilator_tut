@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 
+BINARIES:=thruwire blinky blinky_tr dimmer dimmer_tr strobe pps1 pps2
+VOPTS:=-Wall -cc
+
 ifeq ($(OS),Windows_NT)
 	CCFLAGS += -D WIN32
 	CXX := clang++
@@ -11,64 +14,48 @@ else
 		VINC := /usr/share/verilator/include
 	endif
 	ifeq ($(UNAME_S),Darwin)
+		#CXXFLAGS += -std=c++14
 		VERILATOR := /opt/local/bin/verilator
+		# CXX := /opt/local/bin/clang++-mp-10
 		VINC := /opt/local/share/verilator/include
 		# if you run verilator with --trace
 		# you have to use clang++
 		# else g++ is OK
-		CXX := clang++
 	endif
 endif
 
-BINARIES:=thruwire blinky blinky_tr dimmer
 
 
 out_dir/V%.cpp:		%.v
-	$(VERILATOR) -Wall -cc $<
+	$(VERILATOR) $(VOPTS) $<
 
+all: 	$(BINARIES)
 
 out_dir/Vblinky.cpp:	blinky.v
 
-thruwire:	thruwire.v
-	$(VERILATOR) -Wall -cc $<
-	cd obj_dir && make -f Vthruwire.mk
-	$(CXX) -I $(VINC) -I obj_dir/ \
-		$(VINC)/verilated.cpp \
-		$@_tb.cpp \
-		obj_dir/Vthruwire__ALL.a \
-		-o $@
+thruwire:	thruwire.v thruwire_tb.cpp
+	bin/build.sh -o $@ $^ 
 
-blinky:	blinky.v
-	$(VERILATOR) -Wall -cc $<
-	cd obj_dir && make -f Vblinky.mk
-	$(CXX) -I $(VINC) -I obj_dir/ \
-		$(VINC)/verilated.cpp \
-		$@_tb.cpp \
-		obj_dir/Vblinky__ALL.a \
-		-o $@
+blinky:	blinky.v blinky_tb.cpp
+	bin/build.sh -o $@ $^ 
 
-blinky_tr:	blinky.v
-	$(VERILATOR) -Wall --trace -cc $<
-	cd obj_dir && make -f Vblinky.mk
-	$(CXX) -I $(VINC) -I obj_dir/ \
-		$(VINC)/verilated.cpp \
-    	$(VINC)/verilated_vcd_c.cpp \
-		$@_tb.cpp \
-		obj_dir/Vblinky__ALL.a \
-		-o $@
+blinky_tr:	blinky.v blinky_tr_tb.cpp
+	bin/build.sh -T -o $@ $^ 
 
-dimmer:	dimmer.v
-	$(VERILATOR) -Wall -cc $<
-	cd obj_dir && make -f V$@.mk
-	$(CXX) -I $(VINC) -I obj_dir/ \
-		$(VINC)/verilated.cpp \
-		$@_tb.cpp \
-		obj_dir/V$@__ALL.a \
-		-o $@
+dimmer:	dimmer.v dimmer_tb.cpp
+	bin/build.sh -GWIDTH=26 -o $@ $^ 
 
-#	/opt/local/bin/verilator -Wall -cc $<
+dimmer_tr:	dimmer.v dimmer_tr_tb.cpp
+	bin/build.sh -T -GWIDTH=26 -o $@ $^ 
 
-all: 	$(BINARIES)
+strobe:	strobe.v strobe_tb.cpp
+	bin/build.sh -GWIDTH=8 -o $@ $^ 
+
+pps1:	pps1.v pps1_tb.cpp
+	bin/build.sh -o $@ $^ 
+
+pps2:	pps2.v pps2_tb.cpp
+	bin/build.sh -o $@ $^ 
 
 clean:
 	@rm -rf obj_dir/

@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "verilated.h"
-#include "Vdimmer.h"
+#include "Vstrobe.h"
 
 #if !defined(WIDTH)
   #define WIDTH 12
 #endif
 
-void tick(Vdimmer *tb)
+void tick(Vstrobe *tb)
 {
     // The following eval() looks
     // redundant ... many of hours
@@ -26,18 +26,18 @@ int main(int argc, char **argv)
     Verilated::commandArgs(argc, argv);
 
     // Instantiate our design
-    Vdimmer *tb = new Vdimmer;
+    Vstrobe *tb = new Vstrobe;
     last_led = tb->o_led;
     // Your logic here
-    // Now run the design thru 5 timesteps
-    for(int k = 0; k < (1<<WIDTH); k++) {
+    int tics = (1<<WIDTH) * 3;
+    for(int k = 0; k < tics; k++) {
         // toogle the clock
         tick(tb);
 
         // Now let’s print the LEDs value
         // anytime it changes
         if (last_led != tb->o_led) {
-            printf("k = %7d, ", k);
+            printf("k = 0o%05o, ", k);
             printf("led = %d\n", tb->o_led);
         }
         last_led = tb->o_led;
