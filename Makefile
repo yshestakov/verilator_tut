@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-BINARIES:=thruwire blinky blinky_tr dimmer dimmer_tr strobe pps1 pps2
+BINARIES:=thruwire blinky blinky_tr dimmer dimmer_tr strobe pps1 pps2 led_walker
 VOPTS:=-Wall -cc
 
 ifeq ($(OS),Windows_NT)
@@ -43,7 +43,7 @@ blinky_tr:	blinky.v blinky_tr_tb.cpp
 	bin/build.sh -T -o $@ $^ 
 
 dimmer:	dimmer.v dimmer_tb.cpp
-	bin/build.sh -GWIDTH=26 -o $@ $^ 
+	bin/build.sh -T -GWIDTH=26 -o $@ $^ 
 
 dimmer_tr:	dimmer.v dimmer_tr_tb.cpp
 	bin/build.sh -T -GWIDTH=26 -o $@ $^ 
@@ -56,6 +56,15 @@ pps1:	pps1.v pps1_tb.cpp
 
 pps2:	pps2.v pps2_tb.cpp
 	bin/build.sh -o $@ $^ 
+
+stretch: stretch.v stretch_tr_tb.cpp
+	bin/build.sh -T -GWIDTH=8 -o $@ $^
+
+tooslow: tooslow.v tooslow_tr_tb.cpp
+	bin/build.sh -T -GNBITS=32 -o $@ $^
+
+led_walker:	led_walker.v led_walker_tb.cpp
+	bin/build.sh -T -o $@ $^ 
 
 clean:
 	@rm -rf obj_dir/
