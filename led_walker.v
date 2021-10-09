@@ -9,7 +9,6 @@ module led_walker(i_clk, o_led);
     
     always @(posedge i_clk)
     begin
-        counter <= counter + 1'b1;
         if (counter == 4'hE)
         begin
             o_led <= 1;
@@ -17,6 +16,7 @@ module led_walker(i_clk, o_led);
         end
         else
         begin
+            counter <= counter + 1'b1;
             if (dir) 
                 o_led <= { 1'b0, o_led[7:1] } ;
             else
