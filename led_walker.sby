@@ -1,0 +1,13 @@
+[options]
+mode prove
+
+[engines]
+smtbmc
+
+[script]
+read -formal led_walker.v
+
+prep -top led_walker
+
+[files]
+led_walker.v

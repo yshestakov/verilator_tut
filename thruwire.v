@@ -8,4 +8,4 @@ module thruwire(i_sw, o_led);
 
     assign w_internal = 9'h87;
     assign o_led = i_sw ^ w_internal;
-endmodule;
+endmodule

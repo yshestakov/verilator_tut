@@ -1,18 +1,22 @@
 #!/bin/bash
 # generate C++ code by Verilog with trace
 # compile module and corresponding test-bench
+VERILATOR=$(type -path verilator)
+if [ -z "$VERILATOR" ] ; then
+    echo "verilator is not in \$PATH" >&2
+    exit 1
+fi
+VPREFIX=${VERILATOR%/bin/verilator}
+
 case $(uname -s) in
     Darwin)
         CXX=/opt/local/bin/clang++-mp-10
-        VPREFIX=/opt/local
         ;;
     Linux)
         CXX=clang++
-        VPREFIX=/usr
         ;;
 esac
 VINC=$VPREFIX/share/verilator/include
-VERILATOR=$VPREFIX/bin/verilator
 export CXX
 
 VLTRFILES=$VINC/verilated.cpp 
