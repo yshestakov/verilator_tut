@@ -4,6 +4,8 @@
 #include "verilated_vcd_c.h"
 #include "Vled_wb.h"
 
+#define TOUT_TICKS 200
+
 class MyTB {
     public:
         int             tickcount;
@@ -37,7 +39,7 @@ void MyTB::tick()
         tfp->dump(tickcount * 10 + 5);
         tfp->flush();
     }
-    if (tickcount >= 100) {
+    if (tickcount >= TOUT_TICKS) {
         printf("\nled_wb_tb timed out in %d ticks\n", tickcount);
         exit(1);
     }
@@ -67,21 +69,17 @@ uint16_t MyTB::wb_read(uint16_t a)
 void    MyTB::wb_write(uint16_t a, uint16_t v)
 {
     tb->i_cyc = tb->i_stb = 1;
-    tb->i_we = 1; tb->eval();
-    tb->i_addr = a;
+    tb->i_we = 1;
     // tb->eval();
+    tb->i_addr = a;
+    tb->i_data = v;
     // make the write WB request
-    while (tb->o_stall) {
+    while (!tb->o_ack) 
         tick();
-    }
     tick();
-    tb->i_stb = 0;
-    // wait for o_ack
-    while(!tb->o_ack)
-        tick();
     // idle the bus
+    tb->i_stb = tb->i_cyc = 0;
     tb->i_we = 0;
-    tb->i_cyc = 0;
     tb->eval();
 }
 
@@ -109,17 +107,17 @@ int main(int argc, char **argv)
         // start LED cyclinkg
         t->wb_write(0, 0);
         t->tick();
-    }
-    // loop over WB transaction
-    uint16_t    state, last_state = 0;
-    uint8_t     last_led = 0;
-    while ((state = t->wb_read(0))!=0) {
-        if (state != last_state || tb->o_led != last_led) {
-            printf("(tick %3d)(state %d)(o_led %02x)\n", t->tickcount, state, tb->o_led);
+        // loop over WB transaction
+        uint16_t    state, last_state = 0;
+        uint8_t     last_led = 0;
+        while ((state = t->wb_read(0))!=0) {
+            if (state != last_state || tb->o_led != last_led) {
+                printf("(tick %3d)(state %d)(o_led %02x)\n", t->tickcount, state, tb->o_led);
+            }
+            t->tick();
+            last_state = state;
+            last_led = tb->o_led;
         }
-        t->tick();
-        last_state = state;
-        last_led = tb->o_led;
     }
     printf("led_wb_tb done in %d ticks\n", t->tickcount);
     t->tick();

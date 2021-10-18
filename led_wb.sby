@@ -1,0 +1,18 @@
+[tasks]
+cvr
+prf
+
+[options]
+cvr: mode cover
+prf: mode prove
+
+[engines]
+smtbmc
+
+[script]
+read -formal led_wb.v
+
+prep -top led_wb
+
+[files]
+led_wb.v
