@@ -1,28 +1,26 @@
 // verilog
 //`default_nettype none
 `ifndef CLK_RATE_HZ
-`define CLK_RATE_HZ 3
+`define CLK_RATE_HZ 4
 `endif
 
-module led_wb(i_clk, i_cyc, i_stb, i_we, i_addr, i_data, o_stall, o_ack, o_data, o_led);
+module led_wb(i_clk, i_cyc, i_stb, i_we, i_addr, i_data, o_stall, o_ack, o_data);
     // Wishbone interface
     /* verilator lint_off UNUSED */
     input wire      i_cyc;
     /* verilator lint_on  UNUSED */
     input wire      i_clk, i_stb, i_we;
-    input wire [15:0]   i_addr;
     /* verilator lint_off UNUSED */
+    input wire [15:0]   i_addr;
     input wire [15:0]   i_data;
     /* verilator lint_on  UNUSED */
     output wire     o_stall;
     output reg      o_ack;
-    output wire [7:0]  o_data;
-    output reg [7:0]    o_led;
+    output wire [15:0]  o_data;
+    reg [7:0]    o_led;
     // -----------------
 
-    // wire            tx_begin = (i_stb)&&(i_we)&&(!o_stall)&&(i_addr==0); 
-    reg             tx_begin;
-    reg [3:0]       index; 
+    reg [3:0]       index;
     wire            dir; // 0 - left, 1 - right
     wire            busy;
     reg [7:0]       wait_cnt; // wait counter
@@ -33,7 +31,7 @@ module led_wb(i_clk, i_cyc, i_stb, i_we, i_addr, i_data, o_stall, o_ack, o_data,
     initial f_past_valid = 1'b0;
     always @(posedge i_clk)
         f_past_valid <= 1'b1;
-    
+
     initial o_ack = 1'b0;
     always @(posedge i_clk)
         o_ack <= (i_stb)&&(!o_stall);
@@ -52,12 +50,18 @@ module led_wb(i_clk, i_cyc, i_stb, i_we, i_addr, i_data, o_stall, o_ack, o_data,
             stb <= 1'b1;
     end
 
+    // reg             tx_begin;
+    wire    tx_begin;
+    assign  tx_begin = (i_stb && i_we && (!o_stall));
     always @(posedge i_clk) begin
-        tx_begin <= (i_stb && i_we && (!o_stall) && (i_addr==0));
-        if (tx_begin && stb)
+        // tx_begin <= (i_stb && i_we && (!o_stall) && (i_addr==0));
+        //if (tx_begin && stb)
+        if (tx_begin)
         begin // start the counter
             o_led <= 1;
             index <= 1;
+            wait_cnt <= `CLK_RATE_HZ-2;
+            stb <= 1'b0;
         end
     end
     always @(posedge i_clk) begin
@@ -72,7 +76,7 @@ module led_wb(i_clk, i_cyc, i_stb, i_we, i_addr, i_data, o_stall, o_ack, o_data,
             begin
                 // count and shift
                 index <= index + 1'b1;
-                if (dir) 
+                if (dir)
                     o_led <= { 1'b0, o_led[7:1] } ;
                 else
                     o_led <= { o_led[6:0], 1'b0 } ;
@@ -82,13 +86,14 @@ module led_wb(i_clk, i_cyc, i_stb, i_we, i_addr, i_data, o_stall, o_ack, o_data,
 
     assign  busy = (index != 0);
     assign  o_stall = (busy)&&(i_we);
-    assign  o_data  = { 4'h0, index };
+    assign  o_data  = { 4'h0, index, o_led};
     assign  dir = index[3];
 
     initial index = 4'h0; // index reflects state
     initial o_led = 8'h0; // initially we're dark
 
     `ifdef FORMAL
+        initial i_clk = 1'b0;
         initial i_cyc = 1'b0;
         initial i_addr = 0;
         initial i_data = 0;
@@ -105,13 +110,13 @@ module led_wb(i_clk, i_cyc, i_stb, i_we, i_addr, i_data, o_stall, o_ack, o_data,
     always @(posedge i_clk)
         assert(tx_begin == ((i_stb)&&(!o_stall)));
     always @(posedge i_clk)
-        if (i_stb) 
-            assert(i_cyc == 1'b1);
+        if (i_stb)
+            assert(i_cyc);
     always @(posedge i_clk)
         if ((f_past_valid) && $past(i_stb) && $past(i_we) && $past(!o_stall))
         begin
             assert(index == 1'b1);
-            assert(busy == 1);
+            assert(busy);
         end
     always @(posedge i_clk)
         if ((f_past_valid) && $past(busy) && $past(index<4'hF))
@@ -146,11 +151,27 @@ module led_wb(i_clk, i_cyc, i_stb, i_we, i_addr, i_data, o_stall, o_ack, o_data,
             assert(o_ack);
         end
     // cover && $past
+
     always @(posedge i_clk)
         if (f_past_valid)
         begin
-            cover((!busy)&&($past(busy)));
+            cover((!busy) && $past(busy));
         end
+
+    // clock divider
+    always @(posedge i_clk) begin
+        if (f_past_valid)
+        begin
+            if ($past(wait_cnt)==0)
+            begin
+                assert(stb);
+                assert(wait_cnt==`CLK_RATE_HZ-1);
+            end
+            else
+                assert(!stb);
+        end
+    end
+
     `endif // FORMAL
 endmodule
 

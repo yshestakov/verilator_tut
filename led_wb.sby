@@ -1,17 +1,25 @@
 [tasks]
 cvr
 prf
+bmc
 
 [options]
 cvr: mode cover
 prf: mode prove
+bmc: mode bmc
+
+cvr: depth 20
+prf: depth 10
+
+cvr: append 10
 
 [engines]
-smtbmc
+smtbmc  --dumpsmt2
+#smtbmc boolector
+#smtbmc z3
 
 [script]
 read -formal led_wb.v
-
 prep -top led_wb
 
 [files]

@@ -105,18 +105,22 @@ int main(int argc, char **argv)
         for(int k=0; k<5; k++)
             t->tick();
         // start LED cyclinkg
+        printf("wb_write on cycle # %d", cyc);
         t->wb_write(0, 0);
         t->tick();
         // loop over WB transaction
-        uint16_t    state, last_state = 0;
-        uint8_t     last_led = 0;
+        uint16_t    state, last_state = -1;
         while ((state = t->wb_read(0))!=0) {
-            if (state != last_state || tb->o_led != last_led) {
-                printf("(tick %3d)(state %d)(o_led %02x)\n", t->tickcount, state, tb->o_led);
+            if (state != last_state) {
+                char    leds[9];
+                for(int i=0; i<8; i++) {
+                    leds[i] = state & (1<<i) ? 'O' : '-';
+                }
+                leds[8] = 0;
+                printf("(tick %3d)(state %2d)[%s]\n", t->tickcount, state>>8, leds);
             }
             t->tick();
             last_state = state;
-            last_led = tb->o_led;
         }
     }
     printf("led_wb_tb done in %d ticks\n", t->tickcount);
