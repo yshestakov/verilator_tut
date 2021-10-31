@@ -155,7 +155,11 @@ module led_wb(i_clk, i_cyc, i_stb, i_we, i_addr, i_data, o_stall, o_ack, o_data)
     always @(posedge i_clk)
         if (f_past_valid)
         begin
-            cover((!busy) && $past(busy));
+            assume property (eventually (index==0));
+            cover((!busy) && ($past(busy)));
+            //cover((!o_ack) && $past(o_ack));
+            //cover((!o_stall) && $past(o_stall));
+            //cover((!stb) && $past(stb));
         end
 
     // clock divider

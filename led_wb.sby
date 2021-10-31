@@ -8,7 +8,7 @@ cvr: mode cover
 prf: mode prove
 bmc: mode bmc
 
-cvr: depth 20
+cvr: depth 30
 prf: depth 10
 
 cvr: append 10
