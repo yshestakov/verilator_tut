@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "verilated.h"
 #include "Vblinky.h"
+#include "verilated.h"
 
 void tick(Vblinky *tb)
 {
@@ -17,13 +17,14 @@ void tick(Vblinky *tb)
 
 int main(int argc, char **argv)
 {
-    int last_led ;
     // Call commandArgs first!
-    Verilated::commandArgs(argc, argv);
+    // Verilated::commandArgs(argc, argv);
+    VerilatedContext* contextp = new VerilatedContext;
+    contextp->commandArgs(argc, argv);
 
     // Instantiate our design
-    Vblinky *tb = new Vblinky;
-    last_led = tb->o_led;
+    Vblinky *tb = new Vblinky{contextp};
+    int last_led = tb->o_led;
     // Your logic here
     // Now run the design thru 5 timesteps
     for(int k = 0; k < (1<<12); k++) {
@@ -38,4 +39,6 @@ int main(int argc, char **argv)
         }
         last_led = tb->o_led;
     }
+    delete tb;
+    delete contextp;
 }

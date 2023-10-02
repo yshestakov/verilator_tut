@@ -31,10 +31,12 @@ int main(int argc, char **argv)
     int last_led;
     printf("blinky_tb started\n");
     // Call commandArgs first!
-    Verilated::commandArgs(argc, argv);
+    // Verilated::commandArgs(argc, argv);
+    VerilatedContext* contextp = new VerilatedContext;
+    contextp->commandArgs(argc, argv);
 
     // Instantiate our design
-    Vblinky *tb = new Vblinky;
+    Vblinky *tb = new Vblinky{contextp};
     // Generate a trace
     Verilated::traceEverOn(true);
     VerilatedVcdC* tfp = new VerilatedVcdC;
@@ -56,4 +58,5 @@ int main(int argc, char **argv)
         }
         last_led = tb->o_led;
     }
+    delete contextp;
 }
